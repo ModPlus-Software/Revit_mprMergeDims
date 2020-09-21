@@ -40,7 +40,7 @@
         public Guid AddInId => Guid.Empty;
 
         /// <inheritdoc/>
-        public string LName => "Слияние размеров";
+        public string LName => "Объединить размеры";
 
         /// <inheritdoc/>
         public string Description => "Создание новой размерной цепочки из выбранных размеров, лежащих на одной прямой";
