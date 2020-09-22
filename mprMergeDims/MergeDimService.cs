@@ -32,6 +32,7 @@
             var selection = _application.ActiveUIDocument.Selection;
             var doc = _application.ActiveUIDocument.Document;
             var prompt = Language.GetItem(new ModPlusConnector().Name, "h1");
+            const double tol = 0.0001;
 
             while (true)
             {
@@ -50,10 +51,9 @@
                         var isMatch = false;
                         foreach (var pair in byDimLineDictionary)
                         {
-                            if (Math.Abs(Math.Abs(
-                                pair.Key.Direction.DotProduct(Line
-                                    .CreateBound(pair.Key.Origin, line.Origin)
-                                    .Direction)) - 1) < 0.001)
+                            if ((Math.Abs(pair.Key.Origin.DistanceTo(line.Origin)) < tol &&
+                                 Math.Abs(Math.Abs(pair.Key.Direction.DotProduct(line.Direction)) - 1) < tol) ||
+                                Math.Abs(Math.Abs(pair.Key.Direction.DotProduct(Line.CreateBound(pair.Key.Origin, line.Origin).Direction)) - 1) < tol)
                             {
                                 isMatch = true;
                                 pair.Value.Add(dimension);
@@ -76,6 +76,8 @@
                         t.Start();
                         foreach (var pair in byDimLineDictionary)
                         {
+                            if (pair.Value.Count <= 1)
+                                continue;
                             try
                             {
                                 using (var tr = new Transaction(doc, "Merge dims"))
@@ -89,7 +91,17 @@
                                     {
                                         foreach (Reference reference in d.References)
                                         {
-                                            referenceArray.Append(reference);
+                                            if (reference.ElementId != ElementId.InvalidElementId &&
+                                                doc.GetElement(reference.ElementId) is Grid grid)
+                                            {
+                                                var fromGrid = GetReferenceFromGrid(grid);
+                                                if (fromGrid != null)
+                                                    referenceArray.Append(fromGrid);
+                                            }
+                                            else
+                                            {
+                                                referenceArray.Append(reference);
+                                            }
                                         }
                                     }
 
@@ -115,6 +127,53 @@
                     break;
                 }
             }
+        }
+
+        private static Reference GetReferenceFromGrid(Grid grid)
+        {
+            var optionsAllGeometry = new Options
+            {
+                ComputeReferences = true,
+                View = grid.Document.ActiveView,
+                IncludeNonVisibleObjects = true
+            };
+            var wasException = false;
+            try
+            {
+                var geometry = grid.get_Geometry(optionsAllGeometry).GetTransformed(Transform.Identity);
+                if (geometry != null)
+                {
+                    foreach (var geometryObject in geometry)
+                    {
+                        if (geometryObject is Line line && line.Reference != null)
+                        {
+                            return line.Reference;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                wasException = true;
+            }
+
+            if (wasException)
+            {
+                try
+                {
+                    var gridLine = grid.Curve as Line;
+                    if (gridLine != null && gridLine.Reference != null)
+                    {
+                        return gridLine.Reference;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    ExceptionBox.Show(exception);
+                }
+            }
+
+            return null;
         }
     }
 }
