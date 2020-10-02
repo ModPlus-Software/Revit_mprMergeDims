@@ -33,6 +33,10 @@
             var doc = _application.ActiveUIDocument.Document;
             var prompt = Language.GetItem(new ModPlusConnector().Name, "h1");
             const double tol = 0.0001;
+            var elementsIds = new FilteredElementCollector(doc, doc.ActiveView.Id)
+                .WhereElementIsNotElementType()
+                .Select(e => e.Id.IntegerValue)
+                .ToList();
 
             while (true)
             {
@@ -76,7 +80,7 @@
                         t.Start();
                         foreach (var pair in byDimLineDictionary)
                         {
-                            if (pair.Value.Count <= 1)
+                            if (pair.Value.Count < 1)
                                 continue;
                             try
                             {
@@ -92,6 +96,10 @@
                                         foreach (Reference reference in d.References)
                                         {
                                             if (reference.ElementId != ElementId.InvalidElementId &&
+                                                !elementsIds.Contains(reference.ElementId.IntegerValue))
+                                                continue;
+
+                                            if (reference.ElementId != ElementId.InvalidElementId &&
                                                 doc.GetElement(reference.ElementId) is Grid grid)
                                             {
                                                 var fromGrid = GetReferenceFromGrid(grid);
@@ -105,8 +113,33 @@
                                         }
                                     }
 
-                                    if (doc.Create.NewDimension(view, pair.Key, referenceArray, type) != null)
+                                    if (doc.Create.NewDimension(view, pair.Key, referenceArray, type) is Dimension createdDimension)
                                     {
+                                        referenceArray = new ReferenceArray();
+                                        var reCreate = false;
+                                        for (var i = 0; i < createdDimension.NumberOfSegments; i++)
+                                        {
+                                            var value = createdDimension.Segments.get_Item(i).Value;
+                                            if (value.HasValue && Math.Abs(value.Value) < 0.0001)
+                                            {
+                                                reCreate = true;
+                                            }
+                                            else
+                                            {
+                                                if (i == 0)
+                                                    referenceArray.Append(createdDimension.References.get_Item(i));
+                                                referenceArray.Append(createdDimension.References.get_Item(i + 1));
+                                            }
+                                        }
+
+                                        if (reCreate)
+                                        {
+                                            if (doc.Create.NewDimension(view, pair.Key, referenceArray, type) != null)
+                                            {
+                                                doc.Delete(createdDimension.Id);
+                                            }
+                                        }
+
                                         doc.Delete(pair.Value.Select(d => d.Id).ToList());
                                     }
 
