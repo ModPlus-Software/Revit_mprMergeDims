@@ -91,8 +91,14 @@
                                     var referenceArray = new ReferenceArray();
                                     var view = pair.Value.First().View;
                                     var type = pair.Value.First().DimensionType;
+                                    var dimsData = new List<DimData>();
                                     foreach (var d in pair.Value)
                                     {
+                                        if (d.NumberOfSegments > 0)
+                                            dimsData.AddRange(from DimensionSegment segment in d.Segments select new DimData(segment));
+                                        else
+                                            dimsData.Add(new DimData(d));
+
                                         foreach (Reference reference in d.References)
                                         {
                                             if (reference.ElementId != ElementId.InvalidElementId &&
@@ -119,7 +125,8 @@
                                         var reCreate = false;
                                         for (var i = 0; i < createdDimension.NumberOfSegments; i++)
                                         {
-                                            var value = createdDimension.Segments.get_Item(i).Value;
+                                            var segment = createdDimension.Segments.get_Item(i);
+                                            var value = segment.Value;
                                             if (value.HasValue && Math.Abs(value.Value) < 0.0001)
                                             {
                                                 reCreate = true;
@@ -134,10 +141,15 @@
 
                                         if (reCreate)
                                         {
-                                            if (doc.Create.NewDimension(view, pair.Key, referenceArray, type) != null)
+                                            if (doc.Create.NewDimension(view, pair.Key, referenceArray, type) is Dimension reCreatedDimension)
                                             {
                                                 doc.Delete(createdDimension.Id);
+                                                RestoreTextFields(reCreatedDimension, dimsData);
                                             }
+                                        }
+                                        else
+                                        {
+                                            RestoreTextFields(createdDimension, dimsData);
                                         }
 
                                         doc.Delete(pair.Value.Select(d => d.Id).ToList());
@@ -207,6 +219,108 @@
             }
 
             return null;
+        }
+
+        private void RestoreTextFields(Dimension dimension, IReadOnlyCollection<DimData> dimsData)
+        {
+            foreach (DimensionSegment dimensionSegment in dimension.Segments)
+            {
+                var dimData = dimsData.FirstOrDefault(d => 
+                    d.IsMatchValue(dimensionSegment.Value) &&
+                    Math.Abs(d.Origin.DistanceTo(dimensionSegment.Origin)) < 0.0001);
+                
+                if (dimData == null) 
+                    continue;
+
+                dimensionSegment.Prefix = dimData.Prefix;
+                dimensionSegment.Suffix = dimData.Suffix;
+                dimensionSegment.Above = dimData.Above;
+                dimensionSegment.Below = dimData.Below;
+                dimensionSegment.TextPosition = dimData.TextPosition;
+            }
+        }
+
+        /// <summary>
+        /// <see cref="Dimension"/>/<see cref="DimensionSegment"/> data
+        /// </summary>
+        internal class DimData
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="DimData"/> class.
+            /// </summary>
+            /// <param name="dimension">Instance of <see cref="Dimension"/> without segments</param>
+            public DimData(Dimension dimension)
+            {
+                Value = dimension.Value;
+                Origin = dimension.Origin;
+                TextPosition = dimension.TextPosition;
+                Prefix = dimension.Prefix;
+                Suffix = dimension.Suffix;
+                Above = dimension.Above;
+                Below = dimension.Below;
+            }
+
+            /// <summary>
+            /// Initializes a new instance of the <see cref="DimData"/> class.
+            /// </summary>
+            /// <param name="dimension">Instance of <see cref="DimensionSegment"/></param>
+            public DimData(DimensionSegment dimension)
+            {
+                Value = dimension.Value;
+                Origin = dimension.Origin;
+                TextPosition = dimension.TextPosition;
+                Prefix = dimension.Prefix;
+                Suffix = dimension.Suffix;
+                Above = dimension.Above;
+                Below = dimension.Below;
+            }
+
+            /// <summary>
+            /// <see cref="Dimension.Value"/>
+            /// </summary>
+            public double? Value { get; }
+
+            /// <summary>
+            /// <see cref="Dimension.Origin"/>
+            /// </summary>
+            public XYZ Origin { get; }
+
+            /// <summary>
+            /// <see cref="Dimension.TextPosition"/>
+            /// </summary>
+            public XYZ TextPosition { get; }
+
+            /// <summary>
+            /// <see cref="Dimension.Prefix"/>
+            /// </summary>
+            public string Prefix { get; }
+
+            /// <summary>
+            /// <see cref="Dimension.Suffix"/>
+            /// </summary>
+            public string Suffix { get; }
+
+            /// <summary>
+            /// <see cref="Dimension.Above"/>
+            /// </summary>
+            public string Above { get; }
+
+            /// <summary>
+            /// <see cref="Dimension.Below"/>
+            /// </summary>
+            public string Below { get; }
+
+            /// <summary>
+            /// Is match <see cref="Value"/> to other value
+            /// </summary>
+            /// <param name="value">other value</param>
+            public bool IsMatchValue(double? value)
+            {
+                if (Value.HasValue && value.HasValue)
+                    return Math.Abs(Value.Value - value.Value) < 0.0001;
+                
+                return !Value.HasValue && !value.HasValue;
+            }
         }
     }
 }
