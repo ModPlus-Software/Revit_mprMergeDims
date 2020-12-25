@@ -121,25 +121,7 @@
 
                                     if (doc.Create.NewDimension(view, pair.Key, referenceArray, type) is Dimension createdDimension)
                                     {
-                                        referenceArray = new ReferenceArray();
-                                        var reCreate = false;
-                                        for (var i = 0; i < createdDimension.NumberOfSegments; i++)
-                                        {
-                                            var segment = createdDimension.Segments.get_Item(i);
-                                            var value = segment.Value;
-                                            if (value.HasValue && Math.Abs(value.Value) < 0.0001)
-                                            {
-                                                reCreate = true;
-                                            }
-                                            else
-                                            {
-                                                if (i == 0)
-                                                    referenceArray.Append(createdDimension.References.get_Item(i));
-                                                referenceArray.Append(createdDimension.References.get_Item(i + 1));
-                                            }
-                                        }
-
-                                        if (reCreate)
+                                        if (ModPlus_Revit.Utils.Dimensions.TryRemoveZeroes(createdDimension, out referenceArray))
                                         {
                                             if (doc.Create.NewDimension(view, pair.Key, referenceArray, type) is Dimension reCreatedDimension)
                                             {
