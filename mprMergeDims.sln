@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mprMergeDims", "mprMergeDims\mprMergeDims.csproj", "{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "mprMergeDims", "mprMergeDims\mprMergeDims.csproj", "{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.csproj", "{22EEAAFF-439B-408C-B02C-CD0E9189228D}"
 EndProject
@@ -20,6 +20,7 @@ Global
 		R2019|x64 = R2019|x64
 		R2020|x64 = R2020|x64
 		R2021|x64 = R2021|x64
+		R2022|x64 = R2022|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}.Debug|x64.ActiveCfg = Debug|x64
@@ -34,6 +35,8 @@ Global
 		{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}.R2020|x64.Build.0 = R2020|x64
 		{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}.R2021|x64.ActiveCfg = R2021|x64
 		{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}.R2021|x64.Build.0 = R2021|x64
+		{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}.R2022|x64.ActiveCfg = Debug|x64
+		{6A83BF27-A279-4FFD-A21B-691E8FE42F6C}.R2022|x64.Build.0 = Debug|x64
 		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.Debug|x64.Build.0 = Debug|Any CPU
 		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.R2017|x64.ActiveCfg = Release|Any CPU
@@ -46,6 +49,8 @@ Global
 		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.R2020|x64.Build.0 = Release|Any CPU
 		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.R2021|x64.ActiveCfg = Release|Any CPU
 		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.R2021|x64.Build.0 = Release|Any CPU
+		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.R2022|x64.ActiveCfg = Release|Any CPU
+		{22EEAAFF-439B-408C-B02C-CD0E9189228D}.R2022|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
