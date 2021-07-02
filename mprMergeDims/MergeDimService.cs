@@ -1,4 +1,13 @@
-﻿namespace mprMergeDims
+﻿
+/*
+ * =========================================================
+ * ВАЖНО!
+ * Данный сервис дублируется в плагине mprSectionAnnotation!
+ * Все внесенные правки должны дублироваться!
+ * =========================================================
+ */
+
+namespace mprMergeDims
 {
     using System;
     using System.Collections.Generic;
@@ -108,9 +117,12 @@
                                             if (reference.ElementId != ElementId.InvalidElementId &&
                                                 doc.GetElement(reference.ElementId) is Grid grid)
                                             {
-                                                var fromGrid = GetReferenceFromGrid(grid);
-                                                if (fromGrid != null)
-                                                    referenceArray.Append(fromGrid);
+                                                referenceArray.Append(new Reference(grid));
+                                            }
+                                            else if (reference.ElementId != ElementId.InvalidElementId &&
+                                                     doc.GetElement(reference.ElementId) is Level level)
+                                            {
+                                                referenceArray.Append(new Reference(level));
                                             }
                                             else
                                             {
@@ -154,53 +166,6 @@
                     break;
                 }
             }
-        }
-
-        private static Reference GetReferenceFromGrid(Grid grid)
-        {
-            var optionsAllGeometry = new Options
-            {
-                ComputeReferences = true,
-                View = grid.Document.ActiveView,
-                IncludeNonVisibleObjects = true
-            };
-            var wasException = false;
-            try
-            {
-                var geometry = grid.get_Geometry(optionsAllGeometry).GetTransformed(Transform.Identity);
-                if (geometry != null)
-                {
-                    foreach (var geometryObject in geometry)
-                    {
-                        if (geometryObject is Line line && line.Reference != null)
-                        {
-                            return line.Reference;
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                wasException = true;
-            }
-
-            if (wasException)
-            {
-                try
-                {
-                    var gridLine = grid.Curve as Line;
-                    if (gridLine != null && gridLine.Reference != null)
-                    {
-                        return gridLine.Reference;
-                    }
-                }
-                catch (Exception exception)
-                {
-                    ExceptionBox.Show(exception);
-                }
-            }
-
-            return null;
         }
 
         private void RestoreTextFields(Dimension dimension, IReadOnlyCollection<DimData> dimsData)
